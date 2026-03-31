@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CBTIS No. 9</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    :root { --red: #C0001E; --red-dark: #8B0015; --red-light: #FCEEF0; }
+    body { background: #f5f5f5; }
+
+    .screen { display: none; flex-direction: column; min-height: 100vh; }
+    .screen.active { display: flex; }
+
+    .auth-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1.5rem; background: #f5f5f5; }
+    .auth-card { background: #fff; border-radius: 16px; border: 1px solid #ddd; padding: 2rem; width: 100%; max-width: 380px; }
+    .logo-block { text-align: center; margin-bottom: 1.5rem; }
+    .logo-circle { width: 60px; height: 60px; background: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; }
+    .logo-circle span { color: #fff; font-size: 20px; font-weight: bold; }
+    .logo-name { font-size: 18px; font-weight: bold; color: var(--red); }
+    .logo-sub { font-size: 12px; color: #888; margin-top: 2px; }
+    .field-group { margin-bottom: 1rem; }
+    .field-label { font-size: 12px; color: #666; margin-bottom: 4px; display: block; }
+    .field-group input, .field-group select { width: 100%; padding: 0 12px; height: 40px; border-radius: 8px; border: 1px solid #ddd; font-size: 14px; outline: none; }
+    .field-group input:focus, .field-group select:focus { border-color: var(--red); }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .auth-btn { width: 100%; height: 40px; background: var(--red); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
+    .auth-btn:hover { background: var(--red-dark); }
+    .auth-link { font-size: 12px; color: #888; text-align: center; margin-top: 0.75rem; cursor: pointer; }
+    .auth-link span { color: var(--red); text-decoration: underline; }
+    .error-msg { font-size: 12px; color: var(--red); background: var(--red-light); border-radius: 6px; padding: 8px; margin-bottom: 0.75rem; display: none; }
+
+    .navbar { background: var(--red); padding: 0 1rem; height: 52px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { color: #fff; font-size: 15px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+    .nav-dot { width: 28px; height: 28px; background: rgba(255,255,255,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; font-weight: bold; }
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+    .nav-avatar { width: 32px; height: 32px; background: rgba(255,255,255,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; font-weight: bold; }
+    .nav-out { font-size: 11px; color: rgba(255,255,255,0.8); cursor: pointer; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.35); background: none; }
+
+    .tabs { background: #fff; border-bottom: 1px solid #eee; display: flex; overflow-x: auto; }
+    .tab { flex-shrink: 0; padding: 10px 16px; font-size: 13px; color: #888; cursor: pointer; border-bottom: 2px solid transparent; }
+    .tab.active { color: var(--red); border-bottom-color: var(--red); font-weight: bold; }
+
+    .tab-body { display: none; padding: 1rem; max-width: 600px; margin: 0 auto; width: 100%; }
+    .tab-body.active { display: block; }
+
+    .composer { background: #fff; border-radius: 12px; border: 1px solid #eee; padding: 1rem; margin-bottom: 1rem; }
+    .composer-row { display: flex; gap: 10px; }
+    .c-avatar { width: 36px; height: 36px; background: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; font-weight: bold; flex-shrink: 0; }
+    .composer textarea { flex: 1; border: 1px solid #eee; border-radius: 8px; padding: 8px; font-size: 13px; resize: none; height: 70px; outline: none; }
+    .composer-foot { display: flex; justify-content: flex-end; margin-top: 8px; }
+    .pub-btn { background: var(--red); color: #fff; border: none; border-radius: 8px; padding: 6px 16px; font-size: 13px; cursor: pointer; font-weight: bold; }
+
+    .post-card { background: #fff; border-radius: 12px; border: 1px solid #eee; padding: 1rem; margin-bottom: 0.75rem; }
+    .post-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .post-av { width: 38px; height: 38px; border-radius: 50%; background: var(--red); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; color: #fff; flex-shrink: 0; }
+    .post-nm { font-size: 14px; font-weight: bold; }
+    .post-inf { font-size: 11px; color: #888; }
+    .post-txt { font-size: 13px; line-height: 1.5; }
+
+    .aviso-card { background: #fff; border-radius: 12px; border: 1px solid #eee; padding: 1rem; margin-bottom: 0.75rem; border-left: 3px solid var(--red); }
+    .av-tag { font-size: 10px; font-weight: bold; background: var(--red-light); color: var(--red); border-radius: 4px; padding: 2px 7px; display: inline-block; margin-bottom: 5px; }
+    .av-title { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
+    .av-body { font-size: 13px; color: #555; line-height: 1.5; }
+    .av-date { font-size: 11px; color: #aaa; margin-top: 5px; }
+
+    .profile-header { background: #fff; border-radius: 12px; border: 1px solid #eee; padding: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 14px; }
+    .profile-pic { width: 60px; height: 60px; background: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; font-weight: bold; flex-shrink: 0; }
+    .profile-name { font-size: 16px; font-weight: bold; }
+    .profile-sub { font-size: 12px; color: #888; margin-top: 3px; }
+    .info-card { background: #fff; border-radius: 12px; border: 1px solid #eee; padding: 1rem 1.25rem; }
+    .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-key { color: #888; }
+    .info-val { font-weight: bold; }
+
+    .esp-header { background: var(--red); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; color: #fff; }
+    .esp-title { font-size: 15px; font-weight: bold; }
+    .esp-sub { font-size: 12px; opacity: 0.8; margin-top: 3px; }
+    .compas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .compa-card { background: #fff; border-radius: 10px; border: 1px solid #eee; padding: 10px; display: flex; align-items: center; gap: 8px; }
+    .compa-av { width: 34px; height: 34px; border-radius: 50%; background: var(--red); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; flex-shrink: 0; }
+    .compa-name { font-size: 12px; font-weight: bold; }
+    .compa-ctrl { font-size: 10px; color: #888; }
+
+    .avisos-tabs { display: flex; gap: 8px; margin-bottom: 1rem; }
+    .a-tab { flex: 1; text-align: center; padding: 8px; border-radius: 8px; font-size: 12px; cursor: pointer; border: 1px solid #ddd; color: #888; background: #f5f5f5; }
+    .a-tab.active { background: var(--red); color: #fff; border-color: var(--red); font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<!-- REGISTRO -->
+<div id="s-register" class="screen active">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="logo-block">
+        <div class="logo-circle"><span>C9</span></div>
+        <div class="logo-name">CBTIS No. 9</div>
+        <div class="logo-sub">Red estudiantil · Campeche</div>
+      </div>
+      <div class="error-msg" id="reg-error"></div>
+      <div class="field-group">
+        <span class="field-label">Número de control (14 dígitos)</span>
+        <input type="text" id="r-ctrl" placeholder="24304050090015" maxlength="14" oninput="this.value=this.value.replace(/\D/g,'')">
+      </div>
+      <div class="row2">
+        <div class="field-group">
+          <span class="field-label">Semestre</span>
+          <select id="r-sem">
+            <option value="">--</option>
+            <option>1°</option><option>2°</option><option>3°</option>
+            <option>4°</option><option>5°</option><option>6°</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <span class="field-label">Grupo</span>
+          <select id="r-grupo">
+            <option value="">--</option>
+            <option>A</option><option>B</option><option>C</option><option>D</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <span class="field-label">Especialidad</span>
+        <select id="r-esp">
+          <option value="">Selecciona tu especialidad</option>
+          <option>Programación</option>
+          <option>Contabilidad</option>
+          <option>Electrónica</option>
+          <option>Administración</option>
+          <option>Enfermería</option>
+          <option>Turismo</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <span class="field-label">Nombre completo</span>
+        <input type="text" id="r-name" placeholder="Tu nombre completo">
+      </div>
+      <div class="field-group">
+        <span class="field-label">Contraseña</span>
+        <input type="password" id="r-pass" placeholder="Mínimo 6 caracteres">
+      </div>
+      <button class="auth-btn" onclick="doRegister()">Registrarme</button>
+      <div class="auth-link">¿Ya tienes cuenta? <span onclick="goTo('s-login')">Inicia sesión</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="s-login" class="screen">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="logo-block">
+        <div class="logo-circle"><span>C9</span></div>
+        <div class="logo-name">CBTIS No. 9</div>
+        <div class="logo-sub">Red estudiantil · Campeche</div>
+      </div>
+      <div class="error-msg" id="login-error"></div>
+      <div class="field-group">
+        <span class="field-label">Número de control</span>
+        <input type="text" id="l-ctrl" placeholder="24304050090015" maxlength="14" oninput="this.value=this.value.replace(/\D/g,'')">
+      </div>
+      <div class="field-group">
+        <span class="field-label">Especialidad</span>
+        <select id="l-esp">
+          <option value="">Selecciona tu especialidad</option>
+          <option>Programación</option>
+          <option>Contabilidad</option>
+          <option>Electrónica</option>
+          <option>Administración</option>
+          <option>Enfermería</option>
+          <option>Turismo</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <span class="field-label">Contraseña</span>
+        <input type="password" id="l-pass" placeholder="••••••••">
+      </div>
+      <button class="auth-btn" onclick="doLogin()">Entrar</button>
+      <div class="auth-link">¿No tienes cuenta? <span onclick="goTo('s-register')">Regístrate</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- FEED -->
+<div id="s-feed" class="screen">
+  <div class="navbar">
+    <div class="nav-logo"><div class="nav-dot">C9</div>CBTIS No. 9</div>
+    <div class="nav-right">
+      <div class="nav-avatar" id="nav-av">TU</div>
+      <button class="nav-out" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="goTab('t-inicio',this)">Inicio</div>
+    <div class="tab" onclick="goTab('t-avisos',this)">Avisos</div>
+    <div class="tab" id="tab-esp-btn" onclick="goTab('t-especialidad',this)">Mi especialidad</div>
+    <div class="tab" onclick="goTab('t-perfil',this)">Mi perfil</div>
+  </div>
+
+  <div id="t-inicio" class="tab-body active">
+    <div class="composer">
+      <div class="composer-row">
+        <div class="c-avatar" id="comp-av">TU</div>
+        <textarea id="new-post" placeholder="¿Qué está pasando en el CBTIS?"></textarea>
+      </div>
+      <div class="composer-foot"><button class="pub-btn" onclick="publicarPost()">Publicar</button></div>
+    </div>
+    <div id="posts-list"></div>
+  </div>
+
+  <div id="t-avisos" class="tab-body">
+    <div class="avisos-tabs">
+      <div class="a-tab active" onclick="showAvisos('general',this)">Generales</div>
+      <div class="a-tab" onclick="showAvisos('docente',this)">De docentes</div>
+    </div>
+    <div id="avisos-general">
+      <div class="aviso-card"><div class="av-tag">Evento</div><div class="av-title">Feria de Ciencias 2025</div><div class="av-body">Inscripciones abiertas hasta el 5 de abril en coordinación académica.</div><div class="av-date">Dirección · 25 mar 2025</div></div>
+      <div class="aviso-card"><div class="av-tag">Recordatorio</div><div class="av-title">Entrega de credenciales</div><div class="av-body">Martes 1 de abril de 8:00 a 12:00 hrs en control escolar.</div><div class="av-date">Control Escolar · 22 mar 2025</div></div>
+    </div>
+    <div id="avisos-docente" style="display:none">
+      <div class="aviso-card"><div class="av-tag">Examen</div><div class="av-title">Examen parcial de Contabilidad — 4°B</div><div class="av-body">Jueves 3 de abril. Temas: estados financieros y balance general.</div><div class="av-date">Prof. Martínez · 28 mar 2025</div></div>
+      <div class="aviso-card"><div class="av-tag">Tarea</div><div class="av-title">Trabajo de geometría analítica</div><div class="av-body">Entrega este viernes sin prórroga. Suban el PDF al grupo.</div><div class="av-date">Prof. García · 27 mar 2025</div></div>
+    </div>
+  </div>
+
+  <div id="t-especialidad" class="tab-body">
+    <div class="esp-header">
+      <div class="esp-title" id="esp-title">Mi especialidad</div>
+      <div class="esp-sub" id="esp-sub">Cargando...</div>
+    </div>
+    <div class="compas-grid" id="compas-grid"></div>
+  </div>
+
+  <div id="t-perfil" class="tab-body">
+    <div class="profile-header">
+      <div class="profile-pic" id="prof-pic">TU</div>
+      <div>
+        <div class="profile-name" id="prof-name">—</div>
+        <div class="profile-sub" id="prof-sub">—</div>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-row"><span class="info-key">Número de control</span><span class="info-val" id="pi-ctrl">—</span></div>
+      <div class="info-row"><span class="info-key">Especialidad</span><span class="info-val" id="pi-esp">—</span></div>
+      <div class="info-row"><span class="info-key">Semestre y grupo</span><span class="info-val" id="pi-sem">—</span></div>
+      <div class="info-row"><span class="info-key">Plantel</span><span class="info-val">CBTIS No. 9 · Campeche</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:3000';
+let token = null;
+let me = null;
+
+const compañeros = {
+  'Programación':   [{n:'Ana García'},{n:'Luis Torres'},{n:'Sofía Ruiz'},{n:'Miguel Ek'},{n:'Paola Chan'},{n:'Carlos Balam'}],
+  'Contabilidad':   [{n:'Fernanda R.'},{n:'Ernesto M.'},{n:'Lucia P.'},{n:'Diego H.'},{n:'Valeria C.'},{n:'Omar T.'}],
+  'Electrónica':    [{n:'José May'},{n:'Karla Cab'},{n:'Iván Poot'},{n:'Diana Mis'},{n:'Raúl Che'},{n:'Elena Tun'}],
+  'Administración': [{n:'Andrea R.'},{n:'Marco A.'},{n:'Nadia C.'},{n:'Beto S.'},{n:'Gaby M.'},{n:'Toño L.'}],
+  'Enfermería':     [{n:'Rosa Pat'},{n:'Héctor Ku'},{n:'Mía Cocom'},{n:'Alan Dzib'},{n:'Iris Tzuc'},{n:'Yuridia X'}],
+  'Turismo':        [{n:'Brenda A.'},{n:'Rodrigo B.'},{n:'Camila Z.'},{n:'Óscar M.'},{n:'Tania R.'},{n:'Chuy P.'}],
+};
+
+function ini(name){ return name.trim().split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function goTo(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function goTab(id,el){ document.querySelectorAll('.tab-body').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); if(el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');} }
+function showError(id,msg){ const e=document.getElementById(id); e.textContent=msg; e.style.display='block'; }
+function showAvisos(tipo,el){ document.querySelectorAll('.a-tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); document.getElementById('avisos-general').style.display=tipo==='general'?'block':'none'; document.getElementById('avisos-docente').style.display=tipo==='docente'?'block':'none'; }
+
+async function doRegister(){
+  const ctrl=document.getElementById('r-ctrl').value.trim();
+  const sem=document.getElementById('r-sem').value;
+  const grupo=document.getElementById('r-grupo').value;
+  const esp=document.getElementById('r-esp').value;
+  const nombre=document.getElementById('r-name').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  if(!ctrl||!sem||!grupo||!esp||!nombre||pass.length<6) return showError('reg-error','Completa todos los campos correctamente.');
+  try {
+    const r=await fetch(`${API}/registro`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({control:ctrl,nombre,especialidad:esp,semestre:sem,grupo,password:pass})});
+    const d=await r.json();
+    if(!r.ok) return showError('reg-error',d.error);
+    document.getElementById('l-ctrl').value=ctrl;
+    document.getElementById('l-esp').value=esp;
+    goTo('s-login');
+  } catch { showError('reg-error','No se pudo conectar con el servidor.'); }
+}
+
+async function doLogin(){
+  const ctrl=document.getElementById('l-ctrl').value.trim();
+  const esp=document.getElementById('l-esp').value;
+  const pass=document.getElementById('l-pass').value;
+  try {
+    const r=await fetch(`${API}/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({control:ctrl,especialidad:esp,password:pass})});
+    const d=await r.json();
+    if(!r.ok) return showError('login-error',d.error);
+    token=d.token; me=d.usuario;
+    cargarPerfil();
+    cargarPosts();
+    goTo('s-feed');
+  } catch { showError('login-error','No se pudo conectar con el servidor.'); }
+}
+
+function cargarPerfil(){
+  const i=ini(me.nombre);
+  document.getElementById('nav-av').textContent=i;
+  document.getElementById('comp-av').textContent=i;
+  document.getElementById('prof-pic').textContent=i;
+  document.getElementById('prof-name').textContent=me.nombre;
+  document.getElementById('prof-sub').textContent=`${me.especialidad} · ${me.semestre}${me.grupo}`;
+  document.getElementById('pi-ctrl').textContent=me.control;
+  document.getElementById('pi-esp').textContent=me.especialidad;
+  document.getElementById('pi-sem').textContent=`${me.semestre} semestre · Grupo ${me.grupo}`;
+  document.getElementById('tab-esp-btn').textContent=me.especialidad;
+  document.getElementById('esp-title').textContent=me.especialidad;
+  document.getElementById('esp-sub').textContent=`${me.semestre} semestre · Grupo ${me.grupo} · CBTIS No. 9`;
+  const lista=compañeros[me.especialidad]||[];
+  document.getElementById('compas-grid').innerHTML=lista.map((c,i)=>`<div class="compa-card"><div class="compa-av">${ini(c.n)}</div><div><div class="compa-name">${c.n}</div><div class="compa-ctrl">CBTIS009 · ${me.especialidad}</div></div></div>`).join('');
+}
+
+async function cargarPosts(){
+  try {
+    const r=await fetch(`${API}/posts`);
+    const posts=await r.json();
+    document.getElementById('posts-list').innerHTML=posts.length?posts.map(p=>`
+      <div class="post-card">
+        <div class="post-head">
+          <div class="post-av">${ini(p.nombre)}</div>
+          <div><div class="post-nm">${p.nombre}</div><div class="post-inf">${p.tiempo}</div></div>
+        </div>
+        <div class="post-txt">${p.texto}</div>
+      </div>`).join(''):'<p style="text-align:center;color:#888;padding:2rem">No hay posts todavía. ¡Sé el primero!</p>';
+  } catch {}
+}
+
+async function publicarPost(){
+  const txt=document.getElementById('new-post').value.trim();
+  if(!txt) return;
+  try {
+    await fetch(`${API}/posts`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,texto:txt})});
+    document.getElementById('new-post').value='';
+    cargarPosts();
+  } catch {}
+}
+
+function doLogout(){ token=null; me=null; goTo('s-login'); }
+</script>
+</body>
+</html>
